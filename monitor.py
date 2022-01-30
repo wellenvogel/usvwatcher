@@ -29,15 +29,16 @@ class Values(object):
 
     def __str__(self) -> str:
         rt=''
-        rt+="PSU Voltage:   {:6.3f} V\n".format(self.psuVoltag)
+        rt+="PSU Voltage:   {:6.3f} V\n".format(self.psuVoltage)
         rt+="Shunt Voltage: {:9.6f} V\n".format(self.shuntVoltage)
         rt+="Load Voltage:  {:6.3f} V\n".format(self.loadVoltage)
         rt+="Current:       {:9.6f} A\n".format(self.current)
         rt+="Power:         {:6.3f} W\n".format(self.power)
         rt+="Percent:       {:3.1f}%\n".format(self.percent)
-        rt+="Status:        {s}\n".format(self.status)
-        rt+="Time:          {s}".format(time.strftime("%Y/%m/%d %H:%M:%S",time.localtime(self.timestamp)))
-        print("") 
+        rt+="Discharging:   {0}\n".format(self.discharging)
+        rt+="Status:        {:s}\n".format(self.status)
+        rt+="Time:          {:s}".format(time.strftime("%Y/%m/%d %H:%M:%S",time.localtime(self.timestamp)))
+        return rt
 
 
 class Monitor(object):
@@ -57,7 +58,7 @@ class Monitor(object):
         rt.psuVoltage=rt.loadVoltage+rt.shuntVoltage
         rt.power=ina.getPower_W()
         rt.current=ina.getCurrent_mA() / 1000.0
-        p = (rt.bus_voltage - 6)/2.4*100
+        p = (rt.loadVoltage - 6)/2.4*100
         if(p > 100):
             p = 100
         if(p < 0):

@@ -48,7 +48,7 @@ rest:
           value_template: '{{ value_json.loadVoltage | round(4)}}'
           unit_of_measurement: 'V'
         - name: "RpiUSV_power"
-          value_template: '{{ value_json.power | round(2)}}'    
+          value_template:> '{{ value_json.power | round(2)}}'    
           unit_of_measurement: 'W'
         - name: "RpiUSV_percent"
           value_template: '{{ value_json.percent | round(1) }}'
@@ -59,3 +59,5 @@ rest:
         - name: "RpiUSV_warning"
           value_template: '{{ True if value_json.percent < 30 }}'
 ```
+You can add a card to your UI:
+![example](doc/example-ha.png)

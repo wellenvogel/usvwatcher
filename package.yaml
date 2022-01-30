@@ -1,0 +1,26 @@
+# nfpm example config file
+#
+# check https://nfpm.goreleaser.com/configuration for detailed usage
+#
+name: "usvwatcher"
+arch: "all"
+platform: "linux"
+version: "20210116"
+keep_version: true
+section: "default"
+priority: "extra"
+depends:
+- python3
+- python3-smbus
+- sudo
+maintainer: "Andreas Vogel <andreas@wellenvogel.de>"
+description: |
+  watcher for waveshare USV hat
+homepage: "https://example.com"
+license: "MIT"
+
+contents:
+- src: ./*.service
+  dst: /lib/systemd/system/
+- src: ./*py
+  dst: /usr/lib/usvwatcher

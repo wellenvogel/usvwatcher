@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"sync-rsync.delete": true,
+		"sync-rsync.sites": [
+			{
+				"remotePath": "pi@10.222.10.172:/home/pi/UPS_HAT/", // Sync sync-rsync.local to user2@server2:/path2/
+				"exclude": [
+					".git",
+					".vscode",
+					"__pycache__"
+				]
+			}
+		]
+	}
+}

@@ -17,6 +17,7 @@ class Values(object):
         self.discharging=False
         self.status=self.STATUS_UNDEFINED
         self.timestamp=time.time()
+        self.dischargeStart=0
 
 
     def clone(self) -> 'Values':
@@ -37,7 +38,9 @@ class Values(object):
         rt+="Percent:       {:3.1f}%\n".format(self.percent)
         rt+="Discharging:   {0}\n".format(self.discharging)
         rt+="Status:        {:s}\n".format(self.status)
-        rt+="Time:          {:s}".format(time.strftime("%Y/%m/%d %H:%M:%S",time.localtime(self.timestamp)))
+        rt+="Time:          {:s}\n".format(time.strftime("%Y/%m/%d %H:%M:%S",time.localtime(self.timestamp)))
+        if self.dischargeStart > 0 and self.discharging :
+            rt+="DisSince:      {:s}\n".format(time.strftime("%Y/%m/%d %H:%M:%S",time.localtime(self.dischargeStart)))
         return rt
 
 
@@ -70,8 +73,17 @@ class Monitor(object):
 
     def queryRun(self) -> None:
         runCount=self.runCount
+        dischargeStart=None
         while (runCount == self.runCount):
             newValues=self.queryUsv()
+            if newValues.status == Values.STATUS_OK:
+                if newValues.discharging:
+                    if dischargeStart is None:
+                        dischargeStart=time.time()
+                    newValues.dischargeStart=dischargeStart
+                else:
+                    dischargeStart=None    
+
             with self.lock:
                 self.currentValues=newValues
             time.sleep(2)

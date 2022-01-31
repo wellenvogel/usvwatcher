@@ -1,3 +1,4 @@
+import os
 import subprocess
 import getopt
 import http.server
@@ -12,9 +13,10 @@ import urllib3
 import monitor
 
 class OurHTTPServer(socketserver.ThreadingMixIn,http.server.HTTPServer):
-  def __init__(self, server_address, RequestHandlerClass, monitor, bind_and_activate=True):
+  def __init__(self, server_address, RequestHandlerClass, monitor,filesList, bind_and_activate=True):
     http.server.HTTPServer.__init__(self,server_address,RequestHandlerClass,bind_and_activate)
     self.monitor=monitor # type: monitor.Monitor
+    self.filesList=filesList # type: dict
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -49,18 +51,32 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(r)
 
     def do_GET(self):
-        request=""
-        values=self.server.monitor.getCurrentValues()
-        self.sendJsonResponse(values.toPlain())
-        return
-        #self.sendJsonResponse(self.getReturnData("unknown request %s"%request))  
+        if self.path == "/usv":
+            values=self.server.monitor.getCurrentValues()
+            self.sendJsonResponse(values.toPlain())
+            return
+        for p,f in self.server.filesList.items():
+            if p == self.path or "/"+p == self.path:
+                if os.path.exists(f):
+                    rt={}
+                    with open(f,"r") as fh:
+                        for line in fh:
+                            nv=line.rstrip().split("=")
+                            if len(nv) != 2:
+                                continue
+                            rt[nv[0]]=nv[1]    
+                    self.sendJsonResponse(rt)
+                else:
+                    self.sendJsonResponse(self.getReturnData("file not found %s"%f))
+                return                              
+        self.sendJsonResponse(self.getReturnData("unknown request %s"%self.path))  
 
     def log_message(self,*args):
         pass    
 
 
-def runServer(mon,port, addr="localhost"):
-    server=OurHTTPServer((addr,port),Handler,mon)
+def runServer(mon,port, filesList,addr="localhost"):
+    server=OurHTTPServer((addr,port),Handler,mon,filesList)
     thread=threading.Thread(target=server.serve_forever,daemon=True)
     thread.start()
 
@@ -68,8 +84,9 @@ if __name__ == '__main__':
     port=8082
     address="localhost"
     shutdownLevel=None
+    filesList={}
     try:
-        optlist,args=getopt.getopt(sys.argv[1:],'p:a:s:')
+        optlist,args=getopt.getopt(sys.argv[1:],'p:a:s:f:')
     except getopt.GetoptError as err:
         print(err)
         sys.exit(1)   
@@ -80,10 +97,15 @@ if __name__ == '__main__':
             address=a
         elif o == '-s':
             shutdownLevel=int(a)
+        elif o == '-f':
+            nv=a.split(":")
+            if len(nv) != 2:
+                raise Exception("-f name:file, invalid format %s"%a)
+            filesList[nv[0]]=nv[1]        
     print("running with port %s, address %s shutdown %s"%(port,address,shutdownLevel))            
     mon=monitor.Monitor()
     mon.startQuery()        
-    runServer(mon,port,address)
+    runServer(mon,port,filesList,address)
     numLow=0
     while True:
         now=time.time()

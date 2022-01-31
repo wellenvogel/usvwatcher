@@ -29,7 +29,8 @@ After=syslog.target network.target
 [Service]
 Environment=PORT=8082
 Environment=SHUTDOWNLEVEL=20
-ExecStart=/usr/bin/python3 /usr/lib/usvwatcher/server.py -p ${PORT} -s ${SHUTDOWNLEVEL}
+Environment=EXTRA=
+ExecStart=/usr/bin/python3 /usr/lib/usvwatcher/server.py -p ${PORT} -s ${SHUTDOWNLEVEL} ${EXTRA}
 KillMode=control-group
 Restart=always
 TimeoutStopSec=10
